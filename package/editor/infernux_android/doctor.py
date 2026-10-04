@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import Mapping
 
-from Infernux.engine.build import (
+from infernux.engine.build import (
     BuildDiagnostic,
     BuildTargetId,
     CapabilityReport,

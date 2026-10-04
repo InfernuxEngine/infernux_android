@@ -19,7 +19,7 @@ from xml.sax.saxutils import escape as xml_escape
 
 from packaging.utils import InvalidWheelFilename, parse_wheel_filename
 
-from Infernux.engine.build import (
+from infernux.engine.build import (
     BuildArtifact,
     BuildConfiguration,
     BuildDiagnostic,
@@ -143,7 +143,7 @@ def _reject_android_jit_imports(python_sources: tuple[Path, ...]) -> None:
         raise _UnsupportedJitImportError(
             f"Android Player cannot package direct {imports} imports in selected "
             f"scripts ({sources}): the Android runtime has no CPU JIT compiler. "
-            "Use Infernux.jit.compile for ordinary Python execution on Android."
+            "Use infernux.jit.compile for ordinary Python execution on Android."
         )
 
 
@@ -434,7 +434,7 @@ class AndroidPlatformExporter(PlatformExporter):
             )
             resolution_scaling, target_dpi = _android_resolution_contract(request)
         except (OSError, RuntimeError, ValueError) as error:
-            from Infernux.engine.build.compute_aot import ComputeAotBuildError
+            from infernux.engine.build.compute_aot import ComputeAotBuildError
 
             if isinstance(error, _UnsupportedJitImportError):
                 return BuildResult(
@@ -867,9 +867,9 @@ def _android_application_id(game_name: str) -> str:
 
 
 def _engine_package() -> Path:
-    import Infernux
+    import infernux
 
-    return Path(Infernux.__file__).resolve().parent
+    return Path(infernux.__file__).resolve().parent
 
 
 def _stage_engine_python_package(
@@ -881,7 +881,7 @@ def _stage_engine_python_package(
     if not (source_package / "engine" / "platform_player_bootstrap.py").is_file():
         raise ValueError(f"Infernux Player Python sources are incomplete: {source_package}")
     site_packages = staging / "app" / "src" / "main" / "assets" / "python" / "site-packages"
-    destination = site_packages / "Infernux"
+    destination = site_packages / "infernux"
     request.report("analyze", 0, 2, "Staging Infernux Android Player modules")
     shutil.rmtree(destination, ignore_errors=True)
     shutil.copytree(
@@ -910,10 +910,6 @@ def _stage_engine_python_package(
         destination / "_compiler" / "taichi" / "_vendor",
         ignore_errors=True,
     )
-    public_api = source_package.parent / "infernux.py"
-    if not public_api.is_file():
-        raise ValueError(f"Infernux public Python API is missing: {public_api}")
-    shutil.copy2(public_api, site_packages / public_api.name)
 
     packaging_spec = importlib.util.find_spec("packaging")
     packaging_source = (
@@ -945,9 +941,8 @@ def _compile_android_runtime_bytecode(site_packages: Path) -> None:
         )
 
     roots = (
-        site_packages / "Infernux",
+        site_packages / "infernux",
         site_packages / "packaging",
-        site_packages / "infernux.py",
     )
     sources = sorted(
         (
@@ -1003,7 +998,7 @@ def _cook_player_content(
 ) -> tuple[str, str, str]:
     """Run the shared GUID-based Player cook and stage its native package."""
 
-    from Infernux.engine.platform_content_cook import (
+    from infernux.engine.platform_content_cook import (
         build_settings_for_request,
         cook_platform_content,
         read_cooked_player_icon,
@@ -1471,7 +1466,7 @@ def _finalize_python_runtime_identity(staging: Path) -> str:
     digest = hashlib.sha256(b"INFERNUX_ANDROID_PYTHON_ASSETS\n")
     digest.update(identity_path.read_bytes().strip() + b"\n")
     site_packages = staged_python / "site-packages"
-    for package_name in ("Infernux", "packaging"):
+    for package_name in ("infernux", "packaging"):
         package_root = site_packages / package_name
         if not package_root.is_dir():
             raise ValueError(

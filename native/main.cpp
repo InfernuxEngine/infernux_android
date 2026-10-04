@@ -70,7 +70,7 @@ bool run_player()
         return false;
     }
 
-    PyObject *module = PyImport_ImportModule("Infernux.engine.platform_player_bootstrap");
+    PyObject *module = PyImport_ImportModule("infernux.engine.platform_player_bootstrap");
     if (module == nullptr) {
         PyErr_Print();
         SDL_Log("Infernux Android host failed to import the platform Player bootstrap");

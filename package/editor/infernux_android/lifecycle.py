@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from Infernux.engine.build import ExporterRegistration, exporter_registry
-from Infernux.lifecycle import InxPreload, PreloadContext
+from infernux.engine.build import ExporterRegistration, exporter_registry
+from infernux.lifecycle import InxPreload, PreloadContext
 
 from .exporter import AndroidPlatformExporter
 

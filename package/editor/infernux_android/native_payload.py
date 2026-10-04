@@ -17,7 +17,7 @@ NATIVE_LIBRARIES = (
 
 
 def inspect_native_payload(root: Path, *, abi: str) -> dict[str, object]:
-    from Infernux.version import ENGINE_VERSION
+    from infernux.version import ENGINE_VERSION
 
     manifest = json.loads((root / abi / "Player.inxmanifest").read_text(encoding="utf-8"))
     expected = {"engine_version": ENGINE_VERSION, "platform": "android",
