@@ -903,6 +903,7 @@ def _stage_engine_python_package(
             "official_packages",
             "player_runtime",
             "project_templates",
+            "templates",
             "test",
         ),
     )
