@@ -830,6 +830,7 @@ def _configure_project(
     application_id = _android_application_id(game_name)
     replacements = {
         "@ANDROID_ABI@": abi,
+        "@ANDROID_MINIMUM_API@": str(_ANDROID_MINIMUM_API),
         "@ANDROID_BUILD_TOOLS_VERSION@": ANDROID_BUILD_TOOLS,
         "@ANDROID_NDK_VERSION@": ANDROID_NDK,
         "@ANDROID_GRADLE_PLUGIN_VERSION@": ANDROID_GRADLE_PLUGIN,
@@ -1247,6 +1248,8 @@ def _stage_python_runtime(
     if not python_library.is_file():
         raise ValueError(f"Android Python {version} shared library is missing: {prefix}")
 
+    # Resolve the complete target contract before replacing staged runtime data.
+    numpy_wheel = _find_android_numpy_wheel(request, prefix, abi, version)
     staged_python = staging / "app" / "src" / "main" / "assets" / "python"
     obsolete_headers = staging / "app/src/main/python"
     if obsolete_headers.exists():
@@ -1281,7 +1284,6 @@ def _stage_python_runtime(
         shutil.copy2(library, native_library / library.name)
 
     request.report("python-runtime", 3, 4, "Staging Android NumPy runtime")
-    numpy_wheel = _find_android_numpy_wheel(request, prefix, abi, version)
     site_packages = staged_python / "site-packages"
     _extract_wheel(
         numpy_wheel,
@@ -1365,15 +1367,18 @@ def _find_android_numpy_wheel(
         if any(
             tag.interpreter == expected_interpreter
             and tag.abi == expected_interpreter
-            and tag.platform.startswith("android_")
-            and tag.platform.endswith("_" + expected_architecture)
+            and (platform := re.fullmatch(
+                rf"android_([0-9]+)_{expected_architecture}", tag.platform
+            )) is not None
+            and 21 <= int(platform[1]) <= _ANDROID_MINIMUM_API
             for tag in tags
         ):
             compatible.append((package_version, wheel))
     if not compatible:
         raise ValueError(
             "Android Player requires a NumPy wheel matching "
-            f"{expected_interpreter} and {abi}. Place it in {prefix / 'wheels'} "
+            f"{expected_interpreter}, {abi}, and minimum Android API "
+            f"{_ANDROID_MINIMUM_API} or lower. Place it in {prefix / 'wheels'} "
             "or configure android_numpy_wheel."
         )
     return max(compatible, key=lambda item: item[0])[1]

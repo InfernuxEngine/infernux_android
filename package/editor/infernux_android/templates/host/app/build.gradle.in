@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId "@ANDROID_APPLICATION_ID@"
-        minSdk 26
+        minSdk @ANDROID_MINIMUM_API@
         targetSdk 36
         versionCode 1
         versionName "0.1.0"
