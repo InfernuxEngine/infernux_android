@@ -1,0 +1,12 @@
+# Package versions have the same source bytes on Windows and Unix hosts.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.inxpkg binary
+*.zip binary
+*.dll binary
+*.pyd binary
+*.so binary
+*.a binary
+*.wasm binary
