@@ -2,7 +2,7 @@
 
 The official Android build plugin for [Infernux](https://github.com/ChenlizheMe/Infernux). It adds APK/AAB export for ARM64 devices and x64 emulators, with precompiled Vulkan Players and the Android host files required by an Infernux game.
 
-[简体中文](README.zh-CN.md) · [Infernux Engine](https://github.com/ChenlizheMe/Infernux) · [Plugin Template](https://github.com/ChenlizheMe/infernux_plugin_template) · [Releases](https://github.com/ChenlizheMe/infernux_android/releases)
+[简体中文](README.zh-CN.md) · [Infernux Engine](https://github.com/ChenlizheMe/Infernux) · [Plugin Template](https://github.com/InfernuxEngine/infernux_plugin_template) · [Releases](https://github.com/InfernuxEngine/infernux_android/releases)
 
 ![Infernux Android export workflow](package/plugin_pages/media/overview.png)
 

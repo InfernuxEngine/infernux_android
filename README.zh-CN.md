@@ -2,7 +2,7 @@
 
 这是 [Infernux](https://github.com/ChenlizheMe/Infernux) 游戏引擎的官方 Android 构建插件。它为编辑器提供 APK/AAB 导出能力，支持 ARM64 真机和 x64 模拟器，并包含运行游戏所需的预编译 Vulkan Player 与 Android 宿主文件。
 
-[English](README.md) · [Infernux 引擎](https://github.com/ChenlizheMe/Infernux) · [插件模板](https://github.com/ChenlizheMe/infernux_plugin_template) · [发布制品](https://github.com/ChenlizheMe/infernux_android/releases)
+[English](README.md) · [Infernux 引擎](https://github.com/ChenlizheMe/Infernux) · [插件模板](https://github.com/InfernuxEngine/infernux_plugin_template) · [发布制品](https://github.com/InfernuxEngine/infernux_android/releases)
 
 ![Infernux Android 导出流程](package/plugin_pages/media/overview.png)
 
