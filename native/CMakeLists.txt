@@ -64,7 +64,7 @@ add_custom_target(prebuild_android_player
         "${CMAKE_CURRENT_BINARY_DIR}/android-player-$<CONFIG>.json"
         "${_android_player}/Player.inxmanifest"
     COMMAND "${CMAKE_COMMAND}" -E copy_directory
-        "${CMAKE_SOURCE_DIR}/external/SDL/android-project/app/src/main/java"
+        "${CMAKE_SOURCE_DIR}/external/sdl_for_infernux/android-project/app/src/main/java"
         "${_android_plugin}/package/editor/infernux_android/player/java"
     DEPENDS ${_android_player_targets}
     COMMENT "Publishing precompiled Android Player directly into its plugin"
