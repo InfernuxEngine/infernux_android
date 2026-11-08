@@ -22,12 +22,13 @@ def main() -> None:
     parser.add_argument("--abi", choices=("arm64-v8a", "x86_64"), required=True)
     parser.add_argument("--build-root", required=True, type=Path)
     parser.add_argument("--jobs", type=int, default=4)
+    parser.add_argument("--player-output", type=Path)
     args = parser.parse_args()
     sdk, prefix, build = (p.resolve() for p in (args.sdk, args.python_prefix, args.build_root))
     suffix = ".exe" if sys.platform == "win32" else ""
     cmake_bin = sdk / "cmake" / ANDROID_CMAKE / "bin"
     cmake = str(cmake_bin / f"cmake{suffix}")
-    subprocess.run([
+    configure = [
         cmake, "-S", str(ENGINE_ROOT), "-B", str(build), "-G", "Ninja",
         f"-DCMAKE_MAKE_PROGRAM={cmake_bin / ('ninja' + suffix)}",
         f"-DCMAKE_TOOLCHAIN_FILE={sdk / 'ndk' / ANDROID_NDK / 'build/cmake/android.toolchain.cmake'}",
@@ -42,7 +43,10 @@ def main() -> None:
         "-DINFERNUX_BUILD_PLAYER_HOST=OFF", "-DINFERNUX_BUILD_TESTS=OFF",
         "-DINFERNUX_BUILD_GPU_JIT_COMPILER=OFF",
         "-DINFERNUX_RELEASE_LTO=OFF", "-DINFERNUX_ENABLE_VULKAN_VALIDATION=OFF",
-    ], cwd=ENGINE_ROOT, check=True)
+    ]
+    if args.player_output is not None:
+        configure.append(f"-DINFERNUX_ANDROID_PLAYER_OUTPUT_DIR={args.player_output.resolve()}")
+    subprocess.run(configure, cwd=ENGINE_ROOT, check=True)
     subprocess.run([cmake, "--build", str(build), "--target", "prebuild_android_player",
                     "--parallel", str(args.jobs)], cwd=ENGINE_ROOT, check=True)
 

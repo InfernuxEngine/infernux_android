@@ -285,10 +285,11 @@ class AndroidPlatformExporter(PlatformExporter):
             payload = Path(__file__).with_name("player")
             native = inspect_native_payload(payload, abi=abi)
         except (OSError, ValueError) as error:
-            return CapabilityReport(False, (
-                BuildDiagnostic(DiagnosticSeverity.ERROR, "android.player.runtime-invalid",
-                                str(error), source=self.exporter_id),
-            ), details)
+            from infernux.engine.player_runtime_repair import rebuild_diagnostic
+            details["player_payload"] = str(payload)
+            details["runtime_rebuild_required"] = True
+            return CapabilityReport(True, (*toolchain.diagnostics,
+                rebuild_diagnostic(error, source=self.exporter_id)), details)
         details["player_payload"] = str(payload)
         details["native_configuration"] = native["configuration"]
         return CapabilityReport(True, toolchain.diagnostics, details)
@@ -325,6 +326,18 @@ class AndroidPlatformExporter(PlatformExporter):
                 manifest={"toolchain": dict(report.details)},
             )
         details = dict(report.details)
+        from infernux.engine.player_runtime_repair import prepare_player_runtime
+        abi = "x86_64" if request.target == "android-x64-emulator" else "arm64-v8a"
+        try:
+            compatible = prepare_player_runtime(
+                request, details["player_payload"],
+                lambda root: inspect_native_payload(root, abi=abi), options=details,
+            )
+        except (OSError, RuntimeError, ValueError) as error:
+            return BuildResult(request.target, False, diagnostics=(BuildDiagnostic(
+                DiagnosticSeverity.ERROR, "android.player.rebuild-failed", str(error),
+                source=self.exporter_id),), elapsed_seconds=time.perf_counter() - started)
+        details["player_payload"] = str(compatible)
         engine_package = _engine_package()
         sdk_root = Path(str(details["sdk_root"]))
         abi = str(plan.metadata["abi"])

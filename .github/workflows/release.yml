@@ -1,115 +1,22 @@
-name: Package and release
+# Platform binaries are published together by the owning engine release workflow:
+# ChenlizheMe/Infernux/.github/workflows/engine-platform-plugins.yml
+name: Platform Plugin Source Checks
 
 on:
   push:
-    branches: [main]
-    tags: ['v*']
   pull_request:
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: Existing tag to build and publish (empty builds the selected revision only)
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Test standalone packaging
-        run: python -m unittest discover -s tests -v
-
-  release:
-    needs: test
-    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-    permissions:
-      contents: write
-    defaults:
-      run:
-        shell: bash -el {0}
-        working-directory: engine
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ChenlizheMe/Infernux
-          ref: e57387c0b65fa0b4838341faafa0572d100e8411
-          submodules: recursive
-          path: engine
-      - name: Build this exact plugin revision in its owning subrepository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.release_tag || github.sha }}
-          path: engine/external/plugins/infernux_android
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          activate-environment: infernux
-          python-version: '3.13'
-          auto-activate-base: false
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-      - uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
-      - name: Install release-engineering dependencies
-        run: |
-          conda activate infernux
-          scripts/setup/install_linux_dependencies.sh
-          python -m pip install --disable-pip-version-check -r requirements.txt
-          sdkmanager "cmake;3.30.5" "ndk;27.3.13750724" "ndk;29.0.14206865"
-      - uses: actions/cache@v4
-        with:
-          path: |
-            engine/out/android-python
-            engine/out/android-python-work
-            engine/out/android-native
-          key: android-plugin-${{ runner.os }}-${{ hashFiles('engine/cmake/**', 'engine/cpp/**', 'engine/CMakeLists.txt', 'engine/scripts/setup/*android*', 'engine/external/plugins/infernux_android/native/**') }}
-          restore-keys: |
-            android-plugin-${{ runner.os }}-
-      - name: Publish both native ABIs directly into the plugin
-        run: |
-          conda activate infernux
-          for abi in arm64-v8a x86_64; do
-            prefix="$PWD/out/android-python/$abi"
-            if [[ ! -d "$prefix" ]]; then
-              scripts/setup/build_android_python_runtime.sh "$abi" "$prefix" "$PWD/out/android-python-work"
-            fi
-            python external/plugins/infernux_android/native/build.py \
-              --sdk "$ANDROID_SDK_ROOT" --python-prefix "$prefix" \
-              --abi "$abi" --build-root "$PWD/out/android-native/$abi"
-          done
-          "$ANDROID_SDK_ROOT/cmake/3.30.5/bin/cmake" --build out/android-native/x86_64 --target package_android_plugin
-      - uses: actions/upload-artifact@v4
-        with:
-          name: complete-platform-plugin
-          path: |
-            engine/external/plugins/infernux_android/dist/infernux.platform-android.inxpkg
-            engine/external/plugins/infernux_android/dist/infernux.platform-android.release.json
-          if-no-files-found: error
-      - name: Publish versioned plugin
-        if: github.ref_type == 'tag' || inputs.release_tag != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
-        run: |
-          conda activate infernux
-          cd external/plugins/infernux_android
-          python -c 'import json,os; m=json.load(open("dist/infernux.platform-android.release.json")); assert m["release_tag"] == os.environ["RELEASE_TAG"], "Release tag must match package version"'
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" dist/infernux.platform-android.inxpkg dist/infernux.platform-android.release.json --clobber
-          else
-            gh release create "$RELEASE_TAG" dist/infernux.platform-android.inxpkg dist/infernux.platform-android.release.json \
-              --verify-tag --title "$RELEASE_TAG" --notes-file RELEASE_NOTES.md
-          fi
+      - name: Test standalone package construction
+        run: python -m unittest discover -s tests -p test_release.py -v

@@ -13,6 +13,7 @@ import package
 def _require_native_payloads(root: Path, engine_version: str) -> None:
     player = root / "package/editor/infernux_android/player"
     libraries = run_path(str(player.parent / "native_payload.py"))["NATIVE_LIBRARIES"]
+    release = None
     for abi, machine in (("arm64-v8a", 183), ("x86_64", 62)):
         directory = player / abi
         manifest = json.loads((directory / "Player.inxmanifest").read_text(encoding="utf-8"))
@@ -20,6 +21,12 @@ def _require_native_payloads(root: Path, engine_version: str) -> None:
                     "python_abi": "cp313", "minimum_api": 26, "configuration": "Release"}
         if not isinstance(manifest, dict) or any(manifest.get(k) != v for k, v in expected.items()):
             raise ValueError(f"Android {abi} payload must match the {engine_version} Release contract")
+        current = manifest.get("engine_release")
+        if not isinstance(current, str) or not (current == engine_version or current.startswith(engine_version + "-v")):
+            raise ValueError(f"Android {abi} payload has no matching hotfix release identity")
+        if release is not None and release != current:
+            raise ValueError("Android Player ABIs must come from the same engine hotfix")
+        release = current
         declared = manifest.get("native_libraries")
         if (not isinstance(declared, list)
                 or any(not isinstance(name, str) for name in declared)
@@ -55,6 +62,7 @@ def build_release(tag: str | None = None, output: Path | None = None) -> tuple[P
         "reference": metadata["reference"],
         "version": metadata["version"],
         "engine": metadata["engine"],
+        "engine_release": json.loads((root / "package/editor/infernux_android/player/arm64-v8a/Player.inxmanifest").read_text(encoding="utf-8"))["engine_release"],
         "artifact": {"name": artifact.name},
         "generator": "Infernux platform package release.py",
         "release_tag": tag,

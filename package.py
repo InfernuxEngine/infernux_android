@@ -320,9 +320,9 @@ def _write_inxpack(entries: list[tuple[str, bytes]], destination: Path) -> None:
             pass
 
 
-def build(destination: Path) -> Path:
+def build(destination: Path, *, package_root: Path | None = None) -> Path:
     repository_root = Path(__file__).resolve().parent
-    package_root = repository_root / "package"
+    package_root = package_root if package_root is not None else repository_root / "package"
     if not package_root.is_dir():
         raise FileNotFoundError(f"missing package directory: {package_root}")
     destination = destination.expanduser().resolve()

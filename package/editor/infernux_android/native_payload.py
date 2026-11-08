@@ -17,11 +17,14 @@ NATIVE_LIBRARIES = (
 
 
 def inspect_native_payload(root: Path, *, abi: str) -> dict[str, object]:
-    from infernux.version import ENGINE_VERSION
+    from infernux.version import ENGINE_RELEASE, ENGINE_VERSION
 
     manifest = json.loads((root / abi / "Player.inxmanifest").read_text(encoding="utf-8"))
-    expected = {"engine_version": ENGINE_VERSION, "platform": "android",
+    expected = {"engine_version": ENGINE_VERSION, "engine_release": ENGINE_RELEASE, "platform": "android",
                 "abi": abi, "python_abi": "cp313", "minimum_api": 26}
+    from infernux.plugins.platform_releases import PLAYER_SOURCE_REVISION
+    if PLAYER_SOURCE_REVISION is not None:
+        expected["engine_source_revision"] = PLAYER_SOURCE_REVISION
     if not isinstance(manifest, dict) or any(manifest.get(k) != v for k, v in expected.items()):
         raise ValueError("Android Player payload does not match this engine/ABI")
     if manifest.get("configuration") not in {"Release", "RelWithDebInfo"}:

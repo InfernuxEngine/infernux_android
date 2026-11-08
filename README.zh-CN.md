@@ -1,36 +1,25 @@
 # Infernux Android 平台插件
 
-这是 [Infernux](https://github.com/ChenlizheMe/Infernux) 游戏引擎的官方 Android 构建插件。它为编辑器提供 APK/AAB 导出能力，支持 ARM64 真机和 x64 模拟器，并包含运行游戏所需的预编译 Vulkan Player 与 Android 宿主文件。
+[English](README.md) · [引擎版本制品](https://github.com/ChenlizheMe/Infernux/releases)
 
-[English](README.md) · [Infernux 引擎](https://github.com/ChenlizheMe/Infernux) · [插件模板](https://github.com/InfernuxEngine/infernux_plugin_template) · [发布制品](https://github.com/InfernuxEngine/infernux_android/releases)
+为 Infernux 提供 `android-arm64 / android-x64-emulator` 构建目标。构建宿主与目标：Windows/Linux x64 → Android ARM64/x64。
 
-![Infernux Android 导出流程](package/plugin_pages/media/overview.png)
+![Infernux Android 构建流程](package/plugin_pages/media/overview.png)
 
-## 插件提供什么
+## 安装与使用
 
-- 面向真机的 `android-arm64` 与面向模拟器的 `android-x64-emulator`
-- 预编译原生 Player、CPython 3.13 运行时和 SDL Java 宿主源码
-- Vulkan 渲染、Gradle 工程生成、开发 APK 与发布 AAB
-- 最低 Android API 26
+通过引擎的官方插件目录安装。平台插件随引擎版本统一构建，必须匹配引擎热修号、Python ABI 和目标平台。例如引擎 `0.4.3-v8` 对应平台安装包 `0.4.3.post8`；本仓库的源码包元数据会在最终打包时替换为自动生成的版本标识。
 
-| 包标识 | 版本 | 适配引擎 | 构建环境 | 目标平台 |
-| --- | --- | --- | --- | --- |
-| `infernux/platform-android` | 0.2.20 | Infernux >=0.4.3; payload 0.4.3-v8; Python 3.13 | Windows/Linux x64 | Android ARM64/x64 |
+下载服务按 `platform-plugins/<engine_release>/` 保存制品，GitHub 备用下载来自同一个引擎 Release。四个平台子仓库不再各自独立发布二进制。
 
-## 安装与导出
+版本匹配时直接使用预编译 Player。已安装插件的载荷不匹配时，引擎构建器尝试从当前引擎版本的源码重新编译，验证后覆盖该插件的 Player 载荷，后续直接复用。重建需要相应工具链，不会替换引擎 SDK。
 
-先在 **Infernux Hub → 安装** 中安装**安卓支持**。这套 Hub 级组件包含 JDK、Gradle、Android SDK/NDK 和 Android CPython 等体积较大的公共依赖，由 Infernux 分发服务下载，并在所有项目之间复用。
+## 维护
 
-安卓支持准备完成后，在编辑器的**插件**窗口选择 **Infernux Android Platform** 并导入。在此之前，导入按钮会保持不可用。插件本身优先从 Infernux 分发服务下载；该渠道出现网络故障时，编辑器会改用 GitHub Releases。
+在引擎仓库使用 `scripts/release/build_platform_plugins.py` 构建或打包此平台。引擎 CI 使用同一源码提交生成四个平台插件，统一核对版本与摘要，全部成功后才能发布引擎。平台仓库自身的 CI 负责源码与打包检查。`package.py`、`release.py` 保留为独立开发检查工具。
 
-真机请选择 `android-arm64`，x64 模拟器请选择 `android-x64-emulator`。开发构建默认生成 APK，发布构建默认生成 AAB。需要签名时，配置 `INFERNUX_ANDROID_KEYSTORE`、`INFERNUX_ANDROID_KEY_ALIAS` 和对应密码变量。
-
-普通用户不需要运行 CMake，导入或导出过程中也不会临时下载 SDK。Player 使用 Vulkan，不提供 OpenGL ES 渲染路径。
-
-## 仓库说明
-
-可安装的平台插件位于 `package/`；体积更大的安卓支持由 Hub 单独管理，不会在每个插件和项目里重复一份。原生源码、发布脚本、测试与 CI 留在包外。维护者构建会把两个 ABI 的载荷直接写入 `package/`，推送与版本一致的 `v<version>` 标签后，GitHub Actions 自动发布 `.inxpkg` 和 manifest。
+安装包只包含 `package/` 和编译后的平台载荷。测试、CMake、CI、构建工具和缓存不会进入安装包。具体环境变量与批处理命令见引擎的[平台 Player 发布说明](https://github.com/ChenlizheMe/Infernux/blob/main/docs/learn/platform-player-releases.md)。
 
 ## 许可证
 
-[MIT](LICENSE)。随包提供的第三方组件和 Android 工具链继续遵守各自的许可证。
+[MIT](LICENSE)。捆绑依赖保留各自的许可证。
