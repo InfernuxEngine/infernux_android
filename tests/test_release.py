@@ -29,6 +29,7 @@ class ReleaseTests(unittest.TestCase):
                 (native / name).write_bytes(header)
             (native.parent / "Player.inxmanifest").write_text(json.dumps({
                 "engine_version": metadata["engine"].removeprefix(">="), "platform": "android", "abi": abi,
+                "engine_release": metadata["engine"].removeprefix(">=") + "-v8",
                 "python_abi": "cp313", "minimum_api": 26, "configuration": "Release",
                 "native_libraries": list(libraries),
             }), encoding="utf-8")
