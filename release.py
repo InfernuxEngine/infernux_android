@@ -51,7 +51,7 @@ def build_release(tag: str | None = None, output: Path | None = None) -> tuple[P
         tag = expected
     if tag != expected:
         raise ValueError(f"Release tag must match package version: {expected}")
-    _require_native_payloads(root, metadata["engine"].removeprefix(">="))
+    _require_native_payloads(root, metadata["engine"].removeprefix("=="))
     destination = output if output is not None else root / "dist"
     destination.mkdir(parents=True, exist_ok=True)
     stem = metadata["reference"].replace("/", ".")
