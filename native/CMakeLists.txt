@@ -26,7 +26,7 @@ target_link_libraries(InfernuxAndroidHost PRIVATE
 
 set(_android_player_targets
     InfernuxAndroidHost _Infernux _InfernuxBootstrap
-    ${INFERNUX_RUNTIME_DLL_TARGETS} SDL3-shared assimp Jolt)
+    ${INFERNUX_RUNTIME_DLL_TARGETS} ${INFERNUX_SLANG_TARGET} SDL3-shared assimp Jolt)
 if(INFERNUX_VULKAN_LOADER_TARGET)
     list(APPEND _android_player_targets ${INFERNUX_VULKAN_LOADER_TARGET})
 endif()
@@ -54,7 +54,7 @@ endif()
 
 list(JOIN _android_player_manifest_entries ", " _android_player_manifest_libraries)
 file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/android-player-$<CONFIG>.json"
-    CONTENT "{\n  \"engine_version\": \"${INFERNUX_PACKAGE_VERSION}\",\n  \"engine_release\": \"${INFERNUX_ENGINE_RELEASE}\",\n  \"engine_source_revision\": \"${INFERNUX_SOURCE_REVISION}\",\n  \"platform\": \"android\",\n  \"abi\": \"${ANDROID_ABI}\",\n  \"python_abi\": \"cp313\",\n  \"minimum_api\": 26,\n  \"configuration\": \"$<CONFIG>\",\n  \"native_libraries\": [${_android_player_manifest_libraries}]\n}\n")
+    CONTENT "{\n  \"engine_version\": \"${INFERNUX_PACKAGE_VERSION}\",\n  \"engine_release\": \"${INFERNUX_ENGINE_RELEASE}\",\n  \"engine_source_revision\": \"${INFERNUX_SOURCE_REVISION}\",\n  \"platform\": \"android\",\n  \"abi\": \"${ANDROID_ABI}\",\n  \"python_abi\": \"cp313\",\n  \"minimum_api\": 26,\n  \"configuration\": \"$<CONFIG>\",\n  \"compiler_modules\": \"${INFERNUX_SLANG_MODULE_NAME}\",\n  \"native_libraries\": [${_android_player_manifest_libraries}]\n}\n")
 add_custom_target(prebuild_android_player
     COMMAND "${CMAKE_COMMAND}"
         "-DPLAYER_FILES=$<JOIN:${_android_player_files},|>"
@@ -62,13 +62,15 @@ add_custom_target(prebuild_android_player
         "-DSYMBOLS_DIR=${CMAKE_CURRENT_BINARY_DIR}/symbols/$<CONFIG>/${ANDROID_ABI}"
         "-DOBJCOPY=${CMAKE_OBJCOPY}" "-DSTRIP=${CMAKE_STRIP}"
         -P "${CMAKE_CURRENT_LIST_DIR}/publish_libraries.cmake"
+    COMMAND "${CMAKE_COMMAND}" -E copy_directory
+        "${INFERNUX_SLANG_MODULE_DIR}" "${_android_player}/${INFERNUX_SLANG_MODULE_NAME}"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
         "${CMAKE_CURRENT_BINARY_DIR}/android-player-$<CONFIG>.json"
         "${_android_player}/Player.inxmanifest"
     COMMAND "${CMAKE_COMMAND}" -E copy_directory
         "${CMAKE_SOURCE_DIR}/external/sdl_for_infernux/android-project/app/src/main/java"
         "${INFERNUX_ANDROID_PLAYER_OUTPUT_DIR}/java"
-    DEPENDS ${_android_player_targets}
+    DEPENDS ${_android_player_targets} ${INFERNUX_SLANG_MODULE_TARGETS}
     COMMENT "Publishing precompiled Android Player directly into its plugin"
     COMMAND_EXPAND_LISTS VERBATIM)
 

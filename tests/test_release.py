@@ -27,11 +27,15 @@ class ReleaseTests(unittest.TestCase):
             header = b"\x7fELF\x02\x01" + bytes(12) + machine.to_bytes(2, "little")
             for name in libraries:
                 (native / name).write_bytes(header)
+            modules = native.parent / "slang-standard-module-2026.21"
+            modules.mkdir()
+            (modules / "module.slang-module").write_bytes(b"fixture")
             (native.parent / "Player.inxmanifest").write_text(json.dumps({
                 "engine_version": metadata["engine"].removeprefix("=="), "platform": "android", "abi": abi,
                 "engine_release": metadata["engine"].removeprefix("==") + "-v8",
                 "python_abi": "cp313", "minimum_api": 26, "configuration": "Release",
                 "native_libraries": list(libraries),
+                "compiler_modules": modules.name,
             }), encoding="utf-8")
         java = self.player / "java/org/libsdl/app/SDLActivity.java"
         java.parent.mkdir(parents=True)

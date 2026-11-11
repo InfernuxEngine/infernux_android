@@ -39,6 +39,8 @@ def _require_native_payloads(root: Path, engine_version: str) -> None:
                 header = stream.read(20)
             if header[:6] != b"\x7fELF\x02\x01" or int.from_bytes(header[18:20], "little") != machine:
                 raise ValueError(f"Android native payload has the wrong ELF ABI: {abi}/{name}")
+        if not (directory / manifest["compiler_modules"]).is_dir():
+            raise FileNotFoundError(f"Android {abi} payload has no compiler standard modules")
     if not (player / "java/org/libsdl/app/SDLActivity.java").is_file():
         raise FileNotFoundError("Android plugin is missing the SDL Java host")
 

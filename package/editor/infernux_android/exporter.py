@@ -441,7 +441,6 @@ class AndroidPlatformExporter(PlatformExporter):
             )
         try:
             _stage_engine_python_package(request, staging, engine_package)
-            _finalize_python_runtime_identity(staging)
             game_name, sdl_orientations, android_orientation = (
                 _cook_player_content(request, staging, engine_package, abi)
             )
@@ -504,6 +503,7 @@ class AndroidPlatformExporter(PlatformExporter):
         request.report("prepare", 1, 1, "Android SDL host project ready")
 
         stage_native_payload(Path(str(details["player_payload"])), staging, abi=abi)
+        _finalize_python_runtime_identity(staging)
         request.report("native", 1, 1, f"Precompiled Android runtime staged ({abi})")
 
         gradle = Path(str(details["gradle"]))
