@@ -19,12 +19,10 @@ NATIVE_LIBRARIES = (
 
 def inspect_native_payload(root: Path, *, abi: str) -> dict[str, object]:
     from infernux.version import ENGINE_RELEASE, ENGINE_VERSION
-    from infernux.lib import _Infernux
 
     manifest = json.loads((root / abi / "Player.inxmanifest").read_text(encoding="utf-8"))
     expected = {"engine_version": ENGINE_VERSION, "engine_release": ENGINE_RELEASE, "platform": "android",
-                "abi": abi, "python_abi": "cp313", "minimum_api": 26,
-                "compiler_modules": _Infernux._slang_standard_module_name}
+                "abi": abi, "python_abi": "cp313", "minimum_api": 26}
     from infernux.plugins.platform_releases import PLAYER_SOURCE_REVISION
     if PLAYER_SOURCE_REVISION is not None:
         expected["engine_source_revision"] = PLAYER_SOURCE_REVISION
@@ -43,9 +41,6 @@ def inspect_native_payload(root: Path, *, abi: str) -> dict[str, object]:
         path = root / abi / "jniLibs" / name
         if not path.is_file():
             raise FileNotFoundError(f"Android platform plugin is missing {path}")
-    modules = root / abi / manifest["compiler_modules"]
-    if not modules.is_dir():
-        raise FileNotFoundError(f"Android platform plugin is missing compiler modules: {modules}")
     if not (root / "java/org/libsdl/app/SDLActivity.java").is_file():
         raise FileNotFoundError("Android platform plugin has no SDL Java host")
     return manifest
@@ -63,9 +58,6 @@ def stage_native_payload(root: Path, staging: Path, *, abi: str) -> None:
             path.unlink()
     for name in manifest["native_libraries"]:
         shutil.copy2(root / abi / "jniLibs" / name, native / name)
-    modules = manifest["compiler_modules"]
-    shader_library = staging / "app/src/main/assets/python/site-packages/infernux/lib" / modules
-    shutil.copytree(root / abi / modules, shader_library, dirs_exist_ok=True)
     java = staging / "app/src/main/java/org/libsdl"
     if java.exists():
         shutil.rmtree(java)
